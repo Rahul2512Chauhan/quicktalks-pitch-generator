@@ -1,60 +1,75 @@
- # Streamlit UI
 import streamlit as st
 import requests
 import pyttsx3
 
+# ------------------ Config ------------------
 st.set_page_config(page_title="QuickTalks – Pitch Generator", layout="centered")
 st.title("🎤 QuickTalks – AI Elevator Pitch Generator")
+st.markdown("Generate professional pitch scripts and resume points from your projects in seconds.")
 
-# Initialize session state to store data persistently
+# ------------------ Session State Init ------------------
 if "pitch_data" not in st.session_state:
     st.session_state.pitch_data = None
 
-#user inputs
-title = st.text_input("📌 Project Title")
-description = st.text_area("📝 Short Description")
-keywords = st.text_input("🏷️ Keywords (optonal)")
+# ------------------ User Input ------------------
+with st.container():
+    st.markdown("🧠 Input Your Project Info")
+    title = st.text_input("📌 Project Title")
+    description = st.text_area("📝 Short Description or Resume Bullet")
+    keywords = st.text_input("🏷️ Keywords (optional)")
 
+    if st.button("🚀 Generate Pitch"):
+        with st.spinner("Thinking hard... 🤖"):
+            res = requests.post(
+                "http://localhost:8000/generate",
+                json={"title": title, "description": description, "keywords": keywords}
+            )
+            st.session_state.pitch_data = res.json()
 
-#generate pitch button
-if st.button("Generate Pitch"):
-    with st.spinner("Generating...."):
-        res = requests.post(
-            "http://localhost:8000/generate/",
-            json = {"title":title , "description":description , "keywords":keywords}
-        )
-        st.session_state.pitch_data = res.json() #save to session state
-        data = res.json()
-
-# Show outputs if available
+# ------------------ Output Display ------------------
 data = st.session_state.pitch_data
 if data:
-    st.subheader("🔹 30-second Pitch")
-    st.write(data["pitch_30"])
+    st.divider()
+    st.markdown("🎯 Generated Outputs")
 
-    st.subheader("🔸 1-minute Version")
-    st.write(data["pitch_60"])
+    # 30-second Pitch
+    with st.container():
+        st.markdown("🔹 30-second Pitch")
+        st.success(data["pitch_30"])
 
-    st.subheader("✅ Resume Bullet Points")
-    for bullet in data["resume_bullets"]:
-        st.markdown(f"- {bullet}")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("▶️ Play 30s Pitch"):
+                engine = pyttsx3.init()
+                engine.setProperty('rate', 160)
+                engine.setProperty('volume', 1)
+                engine.say(data["pitch_30"])
+                engine.runAndWait()
 
-# Text-to-speech function
-def speak(text):
-    engine = pyttsx3.init()
-    engine.setProperty('rate', 160)
-    engine.setProperty('volume', 1)
-    engine.say(text)
-    engine.runAndWait()
+        with col2:
+            st.code(data["pitch_30"], language="text")
 
-# Only show Play buttons after data exists
-if data:
-    st.markdown("🔊 Listen to Your Pitches")
+    # 1-minute Pitch
+    with st.container():
+        st.markdown("🔸 1-minute Interview Version")
+        st.info(data["pitch_60"])
 
-    if st.button("▶️ Play 30s Pitch"):
-        speak(data["pitch_30"])
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("▶️ Play 1-Min Pitch"):
+                engine = pyttsx3.init()
+                engine.setProperty('rate', 160)
+                engine.setProperty('volume', 1)
+                engine.say(data["pitch_60"])
+                engine.runAndWait()
 
-    if st.button("▶️ Play 1-Min Pitch"):
-        speak(data["pitch_60"])
+        with col2:
+            st.code(data["pitch_60"], language="text")
 
+    # Resume Bullets
+    with st.container():
+        st.markdown("✅ Resume Bullet Points")
+        for i, bullet in enumerate(data["resume_bullets"], 1):
+            st.markdown(f"**{i}.** {bullet}")
 
+    st.divider()
