@@ -37,7 +37,7 @@ Guidelines:
 Output:
 """
 
-def get_resume_bulles_prompts(title:str , description:str , keywords: str = "")->str:
+def get_resume_bullets_prompts(title:str , description:str , keywords: str = "")->str:
     return f"""
 You are a resume writing assistant.
 Write 2–3 strong, quantified, action-oriented resume bullet points for this project.

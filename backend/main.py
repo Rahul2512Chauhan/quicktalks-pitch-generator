@@ -1,7 +1,7 @@
 # FastAPI app + API routes
 from fastapi import FastAPI
 from pydantic import BaseModel
-
+from generator import generate_all_outputs
 app = FastAPI()
 
 class InputData(BaseModel):
@@ -10,9 +10,9 @@ class InputData(BaseModel):
     keywords:str = ""
 
 @app.post("/generate")
-def generate_outputs(data: InputData):
-    return{
-        "pitch_30": "30-seconds pitch placeholder",
-        "pitch_60": "1-minute pitch placeholder",
-        "resume_bullets": ["Bullet 1" , "Bullet 2"]
-    }
+def generate_all_outputs_endpoint(data: InputData):
+    return generate_all_outputs(
+        data.title,
+        data.description,
+        data.keywords
+    )
