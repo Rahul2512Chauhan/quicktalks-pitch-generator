@@ -1,31 +1,28 @@
-# Handles LLM logic (Zephyr or GPT-3.5)
-import requests
+# Handles LLM logic (gemini-1.5-flash)
+import google.generativeai as genai
+import os
+from dotenv import load_dotenv
+
 from prompts import(
     get_30s_pitch_prompt,
     get_60s_pitch_prompt,
     get_resume_bullets_prompts
 )
 
-def query_zephyr_locally(prompt: str) -> str:
-    """
-    Query a locally running Zephyr model (via Ollama) and return the response.
-    """
-    payload = {
-        "model": "zephyr",  # Make sure this matches your Ollama model name
-        "prompt": prompt,
-        "temperature": 0.7,
-        "stream": False,
-        "options": {
-            "num_predict": 512
-        }
-    }
+load_dotenv()
+api_key = os.getenv("GEMINI_API_KEY")
 
+#configure gemini
+genai.configure(api_key=api_key) # type: ignore
+model = genai.GenerativeModel("gemini-1.5-flash") # type: ignore
+
+def query_gemini(prompt: str) -> str:
     try:
-        res = requests.post("http://localhost:11434/api/generate", json=payload)
-        res.raise_for_status()
-        return res.json().get("response", "").strip()
-    except requests.exceptions.RequestException as e:
-        return f"[Error] Failed to connect to Zephyr: {e}"
+        response = model.generate_content(prompt)
+        return response.text.strip()
+    except Exception as e:
+        return f"[Error from Gemini] {e}"
+
 
 def generate_all_outputs(title:str , description:str , keywords:str = "") -> dict:
 
@@ -35,9 +32,9 @@ def generate_all_outputs(title:str , description:str , keywords:str = "") -> dic
     prompt_resume = get_resume_bullets_prompts(title , description , keywords)
 
     #Get model outputs
-    pitch_30 = query_zephyr_locally(prompt_30)
-    pitch_60 = query_zephyr_locally(prompt_60)
-    resume_bullets_raw = query_zephyr_locally(prompt_resume)
+    pitch_30 = query_gemini(prompt_30)
+    pitch_60 = query_gemini(prompt_60)
+    resume_bullets_raw = query_gemini(prompt_resume)
 
     #clean bullet point format
     bullets = [
