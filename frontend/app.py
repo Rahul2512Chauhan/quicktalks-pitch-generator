@@ -17,7 +17,7 @@ if st.button("Generate Pitch"):
 
         data = res.json()
         st.subheader("🔹 30-second Pitch")
-        st.write(data["pitch-30"])
+        st.write(data["pitch_30"])
 
         st.subheader("🔸 1-minute Version")
         st.write(data["pitch_60"])
