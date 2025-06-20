@@ -72,4 +72,8 @@ if data:
         for i, bullet in enumerate(data["resume_bullets"], 1):
             st.markdown(f"**{i}.** {bullet}")
 
-    st.divider()
+
+
+
+
+    
